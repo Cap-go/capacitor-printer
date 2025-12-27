@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CapacitorPrinterExample</string>
+    <string name="title_activity_main">CapacitorPrinterExample</string>
+    <string name="package_name">com.capgo.printer.example</string>
+    <string name="custom_url_scheme">com.capgo.printer.example</string>
+</resources>

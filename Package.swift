@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "CapgoPrinter",
+    name: "CapgoCapacitorPrinter",
     platforms: [.iOS(.v15)],
     products: [
         .library(
-            name: "CapgoPrinter",
+            name: "CapgoCapacitorPrinter",
             targets: ["PrinterPlugin"])
     ],
     dependencies: [

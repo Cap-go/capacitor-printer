@@ -3,7 +3,7 @@ import Capacitor
 
 @objc(PrinterPlugin)
 public class PrinterPlugin: CAPPlugin, CAPBridgedPlugin {
-    private let pluginVersion: String = "8.0.9"
+    private let pluginVersion: String = "8.0.10"
     public let identifier = "PrinterPlugin"
     public let jsName = "Printer"
     public let pluginMethods: [CAPPluginMethod] = [

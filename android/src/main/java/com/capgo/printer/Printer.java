@@ -117,8 +117,12 @@ public class Printer {
                     new WebViewClient() {
                         @Override
                         public void onPageFinished(WebView view, String url) {
-                            createWebPrintJob(view, name);
-                            callback.onSuccess();
+                            try {
+                                createWebPrintJob(view, name);
+                                callback.onSuccess();
+                            } catch (Exception e) {
+                                callback.onError(e);
+                            }
                         }
                     }
                 );
@@ -200,10 +204,10 @@ public class Printer {
         printManager.print(name, printAdapter, new PrintAttributes.Builder().build());
     }
 
-    private void createWebPrintJob(WebView webView, String name) {
+    private void createWebPrintJob(WebView webView, String name) throws Exception {
         PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
         if (printManager == null) {
-            return;
+            throw new Exception("Print service not available");
         }
 
         PrintDocumentAdapter printAdapter = webView.createPrintDocumentAdapter(name);

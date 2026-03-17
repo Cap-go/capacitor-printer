@@ -71,15 +71,18 @@ public class PrinterPlugin extends Plugin {
             return;
         }
 
+        call.setKeepAlive(true);
         implementation.printHtml(html, name, new Printer.PrintHtmlCallback() {
             @Override
             public void onSuccess() {
                 call.resolve();
+                call.release(getBridge());
             }
 
             @Override
             public void onError(Exception e) {
                 call.reject("Failed to print HTML: " + e.getMessage(), e);
+                call.release(getBridge());
             }
         });
     }

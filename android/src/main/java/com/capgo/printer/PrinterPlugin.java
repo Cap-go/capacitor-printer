@@ -71,12 +71,17 @@ public class PrinterPlugin extends Plugin {
             return;
         }
 
-        try {
-            implementation.printHtml(html, name);
-            call.resolve();
-        } catch (Exception e) {
-            call.reject("Failed to print HTML: " + e.getMessage(), e);
-        }
+        implementation.printHtml(html, name, new Printer.PrintHtmlCallback() {
+            @Override
+            public void onSuccess() {
+                call.resolve();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                call.reject("Failed to print HTML: " + e.getMessage(), e);
+            }
+        });
     }
 
     @PluginMethod

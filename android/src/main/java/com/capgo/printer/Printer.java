@@ -139,7 +139,8 @@ public class Printer {
         if (webView == null) {
             throw new Exception("WebView not available");
         }
-        createWebPrintJob(webView, name);
+        // Ensure WebView operations run on the UI thread
+        activity.runOnUiThread(() -> createWebPrintJob(webView, name));
     }
 
     // MARK: - Private Helper Methods

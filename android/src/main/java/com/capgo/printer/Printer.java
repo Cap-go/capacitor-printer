@@ -105,18 +105,24 @@ public class Printer {
     }
 
     public void printHtml(String html, String name) throws Exception {
-        // Create a WebView to render the HTML
-        WebView webView = new WebView(context);
-        webView.setWebViewClient(
-            new WebViewClient() {
+        activity.runOnUiThread(
+            new Runnable() {
                 @Override
-                public void onPageFinished(WebView view, String url) {
-                    createWebPrintJob(view, name);
+                public void run() {
+                    WebView webView = new WebView(context);
+                    webView.setWebViewClient(
+                        new WebViewClient() {
+                            @Override
+                            public void onPageFinished(WebView view, String url) {
+                                createWebPrintJob(view, name);
+                            }
+                        }
+                    );
+
+                    webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
                 }
             }
         );
-
-        webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
     }
 
     public void printPdf(String path, String name) throws Exception {

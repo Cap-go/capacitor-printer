@@ -146,12 +146,12 @@ public class Printer {
             throw new Exception("WebView not available");
         }
         activity.runOnUiThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        createWebPrintJob(webView, name);
-                    }
+            new Runnable() {
+                @Override
+                public void run() {
+                    createWebPrintJob(webView, name);
                 }
+            }
         );
     }
 

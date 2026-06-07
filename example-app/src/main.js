@@ -1,3 +1,5 @@
+import { CapacitorUpdater } from '@capgo/capacitor-updater';
+import { Capacitor } from '@capacitor/core';
 import { Printer } from '@capgo/capacitor-printer';
 
 // Show status message
@@ -76,3 +78,9 @@ window.printBase64Pdf = async function() {
 };
 
 console.log('Capacitor Printer Example App Ready!');
+
+if (Capacitor.isNativePlatform()) {
+  CapacitorUpdater.notifyAppReady().catch((error) => {
+    console.error('Capgo notifyAppReady failed', error);
+  });
+}

@@ -1,6 +1,0 @@
-{
-  "appId": "com.capgo.printer.example",
-  "appName": "CapacitorPrinterExample",
-  "webDir": "dist",
-  "bundledWebRuntime": false
-}

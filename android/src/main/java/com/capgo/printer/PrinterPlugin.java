@@ -98,6 +98,24 @@ public class PrinterPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void printIframe(PluginCall call) {
+        String selector = call.getString("selector");
+        String name = call.getString("name", "Document");
+
+        if (selector == null) {
+            call.reject("selector is required");
+            return;
+        }
+
+        try {
+            implementation.printIframe(getBridge().getWebView(), selector, name);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("Failed to print iframe: " + e.getMessage(), e);
+        }
+    }
+
+    @PluginMethod
     public void printWebView(PluginCall call) {
         String name = call.getString("name", "Document");
 

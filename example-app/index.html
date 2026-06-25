@@ -145,6 +145,18 @@
   </div>
 
   <div class="section">
+    <h2>Print Iframe Content</h2>
+    <p>Print only the content inside the iframe below.</p>
+    <iframe
+      id="demo-iframe"
+      title="Demo iframe"
+      style="width: 100%; height: 180px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;"
+      srcdoc="&lt;html&gt;&lt;body style='font-family: Arial, sans-serif; padding: 16px;'&gt;&lt;h3&gt;Iframe Document&lt;/h3&gt;&lt;p&gt;Only this iframe content will be sent to the printer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;"
+    ></iframe>
+    <button onclick="printIframeDemo()">Print Iframe</button>
+  </div>
+
+  <div class="section">
     <h2>Print Base64 PDF</h2>
     <p>Print a small base64 encoded PDF.</p>
     <button onclick="printBase64Pdf()">Print Base64 PDF</button>

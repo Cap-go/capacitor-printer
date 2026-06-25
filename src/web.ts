@@ -5,6 +5,7 @@ import type {
   PrintFileOptions,
   PrintHtmlOptions,
   PrintOptions,
+  PrintIframeOptions,
   PrintPdfOptions,
   PrinterPlugin,
 } from './definitions';
@@ -51,6 +52,25 @@ export class PrinterWeb extends WebPlugin implements PrinterPlugin {
 
     // On web, print the PDF URL
     await this.printFromUrl(path, name);
+  }
+
+  async printIframe(options: PrintIframeOptions): Promise<void> {
+    const { selector, name } = options;
+    const iframe = document.querySelector(selector);
+
+    if (!(iframe instanceof HTMLIFrameElement) || !iframe.contentWindow) {
+      throw new Error(`iframe not found: ${selector}`);
+    }
+
+    const originalTitle = document.title;
+    if (name) {
+      document.title = name;
+    }
+
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+
+    document.title = originalTitle;
   }
 
   async printWebView(options?: PrintOptions): Promise<void> {

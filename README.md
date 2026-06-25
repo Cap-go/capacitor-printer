@@ -94,6 +94,7 @@ await Printer.printWebView({
 * [`printFile(...)`](#printfile)
 * [`printHtml(...)`](#printhtml)
 * [`printPdf(...)`](#printpdf)
+* [`printIframe(...)`](#printiframe)
 * [`printWebView(...)`](#printwebview)
 * [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
@@ -216,35 +217,39 @@ Presents the printing UI to print PDF documents.
 --------------------
 
 
+### printIframe(...)
+
+```typescript
+printIframe(options: PrintIframeOptions) => Promise<void>
+```
+
+Presents the printing UI for content inside an iframe element.
+
+Useful when the full HTML document is too large to pass to printHtml().
+
+**Platform Behavior:**
+- **iOS**: Evaluates JavaScript in the WebView to print the iframe content
+- **Android**: Evaluates JavaScript in the WebView to print the iframe content
+- **Web**: Finds the iframe and triggers its print dialog
+
+| Param         | Type                                                              | Description                                |
+| ------------- | ----------------------------------------------------------------- | ------------------------------------------ |
+| **`options`** | <code><a href="#printiframeoptions">PrintIframeOptions</a></code> | - CSS selector and optional print job name |
+
+**Since:** 8.0.19
+
+--------------------
+
+
 ### printWebView(...)
 
 ```typescript
 printWebView(options?: PrintOptions | undefined) => Promise<void>
 ```
 
-Presents the printing UI to print web view content.
-
-Prints the current content displayed in your app's web view.
-
-**Platform Behavior:**
-- **iOS**: Uses UIPrintInteractionController with WKWebView's view printable
-- **Android**: Uses WebView.createPrintDocumentAdapter() with PrintManager
-- **Web**: Triggers window.print() for current page
-
-**Print Styling:**
-Supports CSS print media queries for customization. The web view's current
-styles will be applied, including any @media print rules.
-
-**Use Cases:**
-- Print the current app screen/page
-- Print web-based reports or dashboards
-- Print user-generated content displayed in web view
-
-| Param         | Type                                                  | Description                                       |
-| ------------- | ----------------------------------------------------- | ------------------------------------------------- |
-| **`options`** | <code><a href="#printoptions">PrintOptions</a></code> | - Optional configuration for printing (name only) |
-
-**Since:** 7.0.0
+| Param         | Type                                                  |
+| ------------- | ----------------------------------------------------- |
+| **`options`** | <code><a href="#printoptions">PrintOptions</a></code> |
 
 --------------------
 
@@ -307,6 +312,15 @@ Options for printing PDF documents.
 | Prop       | Type                | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Since |
 | ---------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- |
 | **`path`** | <code>string</code> | Path to the PDF document. **iOS Path Formats:** - `file://` URL: Full file URL path to PDF document - Relative path: Path relative to app's documents directory - Must be within app's accessible directories (documents, temporary, cache) - PDF must be valid and not password-protected **Android Path Formats:** - `content://` URI: Content provider URI (recommended for external PDFs) - `file://` path: Direct file system path to PDF - Must have read permission for the file - Supports both single-page and multi-page PDFs **Web Path Formats:** - Relative or absolute path accessible from web context - Must be a valid PDF file **Validation:** - File must exist at the specified path - File must be a valid PDF (checked by magic number/header) - File must be readable by the app **Common Sources:** - App documents: PDFs saved in app's document directory - Downloads: PDFs from system downloads (use content:// on Android) - Generated PDFs: Temporary PDFs created by the app - Network downloads: PDFs downloaded and saved locally | 7.0.0 |
+
+
+#### PrintIframeOptions
+
+Options for printing iframe content.
+
+| Prop           | Type                | Description                                                                                                    | Since  |
+| -------------- | ------------------- | -------------------------------------------------------------------------------------------------------------- | ------ |
+| **`selector`** | <code>string</code> | CSS selector for the iframe element to print. The selector must match a single iframe in the current document. | 8.0.19 |
 
 
 #### PrintOptions

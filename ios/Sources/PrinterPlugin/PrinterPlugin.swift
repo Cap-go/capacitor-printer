@@ -11,6 +11,7 @@ public class PrinterPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "printFile", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "printHtml", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "printPdf", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "printIframe", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "printWebView", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
@@ -115,6 +116,34 @@ public class PrinterPlugin: CAPPlugin, CAPBridgedPlugin {
                 call.resolve()
             } catch {
                 call.reject("Failed to print PDF: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    @objc func printIframe(_ call: CAPPluginCall) {
+        guard let selector = call.getString("selector") else {
+            call.reject("selector is required")
+            return
+        }
+
+        let name = call.getString("name") ?? "Document"
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            guard let webView = self.bridge?.webView else {
+                call.reject("WebView not available")
+                return
+            }
+
+            do {
+                try self.implementation.printIframe(
+                    webView: webView,
+                    selector: selector,
+                    name: name
+                )
+                call.resolve()
+            } catch {
+                call.reject("Failed to print iframe: \(error.localizedDescription)")
             }
         }
     }

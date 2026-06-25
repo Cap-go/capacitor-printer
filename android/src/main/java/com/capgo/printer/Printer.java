@@ -141,6 +141,32 @@ public class Printer {
         }
     }
 
+    public void printIframe(WebView webView, String selector, String name) throws Exception {
+        if (webView == null) {
+            throw new Exception("WebView not available");
+        }
+
+        String escapedSelector = org.json.JSONObject.quote(selector);
+        String escapedName = org.json.JSONObject.quote(name);
+        final String script =
+            "(function(){var frame=document.querySelector(" +
+            escapedSelector +
+            ");if(!frame||!frame.contentWindow){throw new Error('iframe not found');}if(" +
+            escapedName +
+            "){document.title=" +
+            escapedName +
+            ";}frame.contentWindow.focus();frame.contentWindow.print();})()";
+
+        activity.runOnUiThread(
+            new Runnable() {
+                @Override
+                public void run() {
+                    webView.evaluateJavascript(script, null);
+                }
+            }
+        );
+    }
+
     public void printWebView(WebView webView, String name) throws Exception {
         if (webView == null) {
             throw new Exception("WebView not available");

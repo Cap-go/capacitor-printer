@@ -60,6 +60,20 @@ window.printBase64Image = async function () {
   }
 };
 
+// Print iframe content
+window.printIframeDemo = async function () {
+  try {
+    await Printer.printIframe({
+      selector: '#demo-iframe',
+      name: 'Iframe Document',
+    });
+    showStatus('Print dialog opened successfully!');
+  } catch (error) {
+    console.error('Error printing iframe:', error);
+    showStatus('Error: ' + error.message, true);
+  }
+};
+
 // Print base64 PDF (minimal PDF)
 window.printBase64Pdf = async function () {
   try {

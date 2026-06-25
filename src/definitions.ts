@@ -211,6 +211,31 @@ export interface PrinterPlugin {
    * });
    * ```
    */
+
+  /**
+   * Presents the printing UI for content inside an iframe element.
+   *
+   * Useful when the full HTML document is too large to pass to printHtml().
+   *
+   * **Platform Behavior:**
+   * - **iOS**: Evaluates JavaScript in the WebView to print the iframe content
+   * - **Android**: Evaluates JavaScript in the WebView to print the iframe content
+   * - **Web**: Finds the iframe and triggers its print dialog
+   *
+   * @param options - CSS selector and optional print job name
+   * @returns Promise that resolves when print dialog is dismissed
+   * @throws Error if the iframe is not found or printing fails
+   * @since 8.0.19
+   * @example
+   * ```typescript
+   * await Printer.printIframe({
+   *   selector: '#report-frame',
+   *   name: 'Monthly Report',
+   * });
+   * ```
+   */
+  printIframe(options: PrintIframeOptions): Promise<void>;
+
   printWebView(options?: PrintOptions): Promise<void>;
 
   /**
@@ -497,4 +522,23 @@ export interface PrintOptions {
  *
  * @since 7.0.0
  */
+
+/**
+ * Options for printing iframe content.
+ *
+ * @since 8.0.19
+ */
+export interface PrintIframeOptions extends PrintOptions {
+  /**
+   * CSS selector for the iframe element to print.
+   *
+   * The selector must match a single iframe in the current document.
+   *
+   * @since 8.0.19
+   * @example '#report-frame'
+   * @example 'iframe[name="invoice"]'
+   */
+  selector: string;
+}
+
 export type PrintWebViewOptions = PrintOptions;

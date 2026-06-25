@@ -142,6 +142,38 @@ import WebKit
         )
     }
 
+    /// Print iframe content from the current web view
+    public func printIframe(
+        webView: WKWebView,
+        selector: String,
+        name: String
+    ) throws {
+        let escapedSelector = selector
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\'", with: "\\\'")
+        let escapedName = name
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\'", with: "\\\'")
+
+        let script = """
+        (function() {
+            var frame = document.querySelector('\\(escapedSelector)');
+            if (!frame || !frame.contentWindow) {
+                throw new Error('iframe not found');
+            }
+            if ('\\(escapedName)') {
+                document.title = '\\(escapedName)';
+            }
+            frame.contentWindow.focus();
+            frame.contentWindow.print();
+        })();
+        """
+
+        webView.evaluateJavaScript(script, completionHandler: nil)
+    }
+
     /// Print web view content
     public func printWebView(
         webView: WKWebView,

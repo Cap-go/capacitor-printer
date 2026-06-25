@@ -293,6 +293,7 @@ public class Printer {
             WriteResultCallback callback
         ) {
             try (
+                // Read from the temp file path directly (cache dir), not openFileInput().
                 InputStream input = new java.io.FileInputStream(file);
                 OutputStream output = new FileOutputStream(destination.getFileDescriptor())
             ) {

@@ -14,6 +14,7 @@ import android.print.PageRange;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintDocumentInfo;
+import android.print.PrintJob;
 import android.print.PrintManager;
 import android.util.Base64;
 import android.webkit.WebView;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Printer {
 
@@ -286,11 +288,40 @@ public class Printer {
             return;
         }
 
+        // Populated right after print() returns. We are on the UI thread here and the adapter
+        // callbacks are dispatched to that same thread, so none of them can run before the
+        // reference is set.
+        AtomicReference<PrintJob> printJob = new AtomicReference<>();
+
         // The framework calls onFinish() on the wrapped adapter once the print session ends,
         // which is the earliest point at which the web view content is no longer needed.
-        PrintDocumentAdapter proxy = new PrintFinishAdapter(printAdapter, callback::onFinish);
+        PrintDocumentAdapter proxy = new PrintFinishAdapter(printAdapter, () -> {
+            PrintJob job = printJob.get();
 
-        printManager.print(name, proxy, new PrintAttributes.Builder().build());
+            // Layout and write failures are reported to the framework's own result callbacks,
+            // which cannot be intercepted — PrintDocumentAdapter.LayoutResultCallback and
+            // WriteResultCallback are not subclassable outside android.print. The resulting job
+            // state is the only signal available to us, and it is best effort: a job that fails
+            // after the session ends (offline printer) settles too late to be seen here.
+            if (job != null && job.isFailed()) {
+                callback.onError("Print job failed");
+                return;
+            }
+
+            callback.onFinish();
+        });
+
+        PrintJob job = printManager.print(name, proxy, new PrintAttributes.Builder().build());
+
+        // print() is documented to return null on failure (despite its @NonNull annotation) and
+        // does so when the print feature is missing or the print dialog cannot be started. The
+        // adapter is never invoked in that case, so onFinish() would never arrive.
+        if (job == null) {
+            callback.onError("Failed to start print job");
+            return;
+        }
+
+        printJob.set(job);
     }
 
     private File saveTempFile(byte[] data, String mimeType) throws IOException {
@@ -379,11 +410,15 @@ public class Printer {
 
         @Override
         public void onFinish() {
-            // Let the WebView adapter release its own resources first.
-            delegate.onFinish();
-
-            if (notified.compareAndSet(false, true)) {
-                onFinished.run();
+            try {
+                // Let the WebView adapter release its own resources first.
+                delegate.onFinish();
+            } finally {
+                // Runs even if the delegate throws during teardown, so the caller is always
+                // notified exactly once.
+                if (notified.compareAndSet(false, true)) {
+                    onFinished.run();
+                }
             }
         }
     }

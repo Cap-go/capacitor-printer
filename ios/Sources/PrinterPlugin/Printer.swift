@@ -10,6 +10,7 @@ import WebKit
         case unsupportedMimeType
         case printingNotAvailable
         case invalidData
+        case presentationFailed
     }
 
     /// Print base64 encoded data
@@ -237,9 +238,11 @@ import WebKit
         }
 
         // Present print controller
+        let presented: Bool
+
         if UIDevice.current.userInterfaceIdiom == .pad {
             // For iPad, present as popover
-            printController.present(
+            presented = printController.present(
                 from: viewController.view.bounds,
                 in: viewController.view,
                 animated: true,
@@ -247,10 +250,18 @@ import WebKit
             )
         } else {
             // For iPhone, present modally
-            printController.present(
+            presented = printController.present(
                 animated: true,
                 completionHandler: handler
             )
+        }
+
+        // A false return means nothing was shown and the completion handler will never be
+        // scheduled — for example when another print interaction is already presented, since
+        // UIPrintInteractionController.shared is a singleton. Callers waiting on that handler
+        // would otherwise never hear back.
+        if !presented {
+            throw PrinterError.presentationFailed
         }
     }
 }

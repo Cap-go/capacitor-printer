@@ -26,8 +26,24 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Printer {
+
+    /**
+     * Reports the end of a print session back to the caller.
+     */
+    public interface OnPrintFinishCallback {
+        /**
+         * Invoked once the print session has ended, whether the user printed or cancelled.
+         */
+        void onFinish();
+
+        /**
+         * Invoked when the job could not be started at all.
+         */
+        void onError(String message);
+    }
 
     private final Context context;
     private final Activity activity;
@@ -168,6 +184,19 @@ public class Printer {
     }
 
     public void printWebView(WebView webView, String name) throws Exception {
+        printWebView(webView, name, null);
+    }
+
+    /**
+     * Prints the current content of the web view.
+     *
+     * <p>The adapter returned by {@link WebView#createPrintDocumentAdapter(String)} renders lazily
+     * from the live web view, so callers must keep that content in place until {@code callback}
+     * reports the session has finished.
+     *
+     * @param callback notified once the print session ends, or null for fire-and-forget printing.
+     */
+    public void printWebView(WebView webView, String name, OnPrintFinishCallback callback) throws Exception {
         if (webView == null) {
             throw new Exception("WebView not available");
         }
@@ -175,7 +204,15 @@ public class Printer {
             new Runnable() {
                 @Override
                 public void run() {
-                    createWebPrintJob(webView, name);
+                    try {
+                        createWebPrintJob(webView, name, callback);
+                    } catch (Exception e) {
+                        // The job is created asynchronously on the UI thread, so failures here
+                        // cannot surface through the throws clause above.
+                        if (callback != null) {
+                            callback.onError(e.getMessage());
+                        }
+                    }
                 }
             }
         );
@@ -229,13 +266,31 @@ public class Printer {
     }
 
     private void createWebPrintJob(WebView webView, String name) {
+        try {
+            createWebPrintJob(webView, name, null);
+        } catch (Exception e) {
+            // Preserves the previous silent behaviour for callers without a callback.
+        }
+    }
+
+    private void createWebPrintJob(WebView webView, String name, OnPrintFinishCallback callback) throws Exception {
         PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
         if (printManager == null) {
-            return;
+            throw new Exception("Print service not available");
         }
 
         PrintDocumentAdapter printAdapter = webView.createPrintDocumentAdapter(name);
-        printManager.print(name, printAdapter, new PrintAttributes.Builder().build());
+
+        if (callback == null) {
+            printManager.print(name, printAdapter, new PrintAttributes.Builder().build());
+            return;
+        }
+
+        // The framework calls onFinish() on the wrapped adapter once the print session ends,
+        // which is the earliest point at which the web view content is no longer needed.
+        PrintDocumentAdapter proxy = new PrintFinishAdapter(printAdapter, callback::onFinish);
+
+        printManager.print(name, proxy, new PrintAttributes.Builder().build());
     }
 
     private File saveTempFile(byte[] data, String mimeType) throws IOException {
@@ -279,6 +334,57 @@ public class Printer {
                 return "image/gif";
             default:
                 return "application/octet-stream";
+        }
+    }
+
+    /**
+     * Delegating adapter that additionally notifies when the print session has finished.
+     */
+    private static class PrintFinishAdapter extends PrintDocumentAdapter {
+
+        private final PrintDocumentAdapter delegate;
+        private final Runnable onFinished;
+        private final AtomicBoolean notified = new AtomicBoolean(false);
+
+        PrintFinishAdapter(@NonNull PrintDocumentAdapter delegate, @NonNull Runnable onFinished) {
+            this.delegate = delegate;
+            this.onFinished = onFinished;
+        }
+
+        @Override
+        public void onStart() {
+            delegate.onStart();
+        }
+
+        @Override
+        public void onLayout(
+            PrintAttributes oldAttributes,
+            PrintAttributes newAttributes,
+            CancellationSignal cancellationSignal,
+            LayoutResultCallback callback,
+            Bundle extras
+        ) {
+            delegate.onLayout(oldAttributes, newAttributes, cancellationSignal, callback, extras);
+        }
+
+        @Override
+        public void onWrite(
+            PageRange[] pages,
+            ParcelFileDescriptor destination,
+            CancellationSignal cancellationSignal,
+            WriteResultCallback callback
+        ) {
+            delegate.onWrite(pages, destination, cancellationSignal, callback);
+        }
+
+        @Override
+        public void onFinish() {
+            // Let the WebView adapter release its own resources first.
+            delegate.onFinish();
+
+            if (notified.compareAndSet(false, true)) {
+                onFinished.run();
+            }
         }
     }
 

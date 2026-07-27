@@ -120,8 +120,25 @@ public class PrinterPlugin extends Plugin {
         String name = call.getString("name", "Document");
 
         try {
-            implementation.printWebView(getBridge().getWebView(), name);
-            call.resolve();
+            // Resolve once the print session ends rather than once the job is handed to the
+            // system: the WebView still backs the print adapter until then, so resolving early
+            // lets callers navigate away while pages are still being rendered.
+            implementation.printWebView(
+                getBridge().getWebView(),
+                name,
+                new Printer.OnPrintFinishCallback() {
+                    @Override
+                    public void onFinish() {
+                        // A cancelled job is a normal outcome, not a failure.
+                        call.resolve();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        call.reject("Failed to print web view: " + message);
+                    }
+                }
+            );
         } catch (Exception e) {
             call.reject("Failed to print web view: " + e.getMessage(), e);
         }

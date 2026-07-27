@@ -175,10 +175,15 @@ import WebKit
     }
 
     /// Print web view content
+    ///
+    /// `completion` is invoked once the print interaction has been dismissed, whether the user
+    /// printed or cancelled. `viewPrintFormatter()` renders lazily from the live web view, so
+    /// callers must keep that content in place until `completion` fires.
     public func printWebView(
         webView: WKWebView,
         name: String,
-        presentingViewController: UIViewController?
+        presentingViewController: UIViewController?,
+        completion: ((Bool, Error?) -> Void)? = nil
     ) throws {
         let printInfo = UIPrintInfo(dictionary: nil)
         printInfo.jobName = name
@@ -190,7 +195,8 @@ import WebKit
             printInfo: printInfo,
             printFormatter: formatter,
             printItem: nil,
-            presentingViewController: presentingViewController
+            presentingViewController: presentingViewController,
+            completion: completion
         )
     }
 
@@ -200,7 +206,8 @@ import WebKit
         printInfo: UIPrintInfo,
         printFormatter: UIPrintFormatter?,
         printItem: Any?,
-        presentingViewController: UIViewController?
+        presentingViewController: UIViewController?,
+        completion: ((Bool, Error?) -> Void)? = nil
     ) throws {
         guard UIPrintInteractionController.isPrintingAvailable else {
             throw PrinterError.printingNotAvailable
@@ -219,6 +226,16 @@ import WebKit
             printController.printingItem = item
         }
 
+        // Only build a handler when a caller asked for one, so callers that opted out keep the
+        // existing fire-and-forget behaviour.
+        var handler: UIPrintInteractionController.CompletionHandler?
+
+        if let completion = completion {
+            handler = { _, completed, error in
+                completion(completed, error)
+            }
+        }
+
         // Present print controller
         if UIDevice.current.userInterfaceIdiom == .pad {
             // For iPad, present as popover
@@ -226,13 +243,13 @@ import WebKit
                 from: viewController.view.bounds,
                 in: viewController.view,
                 animated: true,
-                completionHandler: nil
+                completionHandler: handler
             )
         } else {
             // For iPhone, present modally
             printController.present(
                 animated: true,
-                completionHandler: nil
+                completionHandler: handler
             )
         }
     }

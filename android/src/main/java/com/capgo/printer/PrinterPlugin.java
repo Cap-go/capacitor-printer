@@ -9,7 +9,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "Printer")
 public class PrinterPlugin extends Plugin {
 
-    private final String pluginVersion = "8.1.1";
+    private final String pluginVersion = "8.1.2";
 
     private Printer implementation;
 

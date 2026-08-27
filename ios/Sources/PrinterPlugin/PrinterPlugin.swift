@@ -159,12 +159,21 @@ public class PrinterPlugin: CAPPlugin, CAPBridgedPlugin {
             }
 
             do {
+                // Resolve from the print interaction's completion handler rather than straight
+                // after presenting: the web view still backs the print formatter until the sheet
+                // is dismissed, so resolving early lets callers navigate away mid-render.
                 try self.implementation.printWebView(
                     webView: webView,
                     name: name,
                     presentingViewController: self.bridge?.viewController
-                )
-                call.resolve()
+                ) { _, error in
+                    if let error = error {
+                        call.reject("Failed to print web view: \(error.localizedDescription)")
+                    } else {
+                        // A user-cancelled sheet is a normal outcome, not a failure.
+                        call.resolve()
+                    }
+                }
             } catch {
                 call.reject("Failed to print web view: \(error.localizedDescription)")
             }

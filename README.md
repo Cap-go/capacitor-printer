@@ -1,12 +1,27 @@
 # @capgo/capacitor-printer
-<a href="https://capgo.app/"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-printer" alt="Capgo - Instant updates for Capacitor" /></a>
+
+Print documents, HTML, PDFs, images and the current web view from your Capacitor app with the native print dialogs on iOS and Android.
+
+<a href="https://capgo.app/?ref=plugin_printer"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-printer" alt="Capgo - Instant updates for Capacitor" /></a>
 
 <div align="center">
-  <h2><a href="https://capgo.app/?ref=plugin"> ➡️ Get Instant updates for your App with Capgo</a></h2>
-  <h2><a href="https://capgo.app/consulting/?ref=plugin"> Missing a feature? We'll build the plugin for you 💪</a></h2>
+  <p><b>Capgo</b>: open-source live updates for Ionic and Capacitor apps. Ship OTA fixes and features instantly, without waiting for app store review.</p>
+  <h2><a href="https://capgo.app/register/?ref=plugin_printer">➡️ Get started for free</a></h2>
+  <p>14-day unlimited free trial. No credit card required</p>
+  <p><a href="https://capgo.app/consulting/?ref=plugin_printer">Missing a feature? We'll build the plugin for you 💪</a></p>
 </div>
 
-Capacitor plugin for printing documents, HTML, PDFs, images and web views on iOS and Android.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Cap-go/capacitor-printer/main/assets/github-social-preview.png" alt="@capgo/capacitor-printer for Capacitor apps" width="300" />
+</p>
+
+## Key features
+
+- **HTML**: `printHtml()` prints an HTML string.
+- **PDF and files**: `printPdf()`, `printFile()` and `printBase64()` for device files and base64 data.
+- **Web content**: `printWebView()` prints the current page and `printIframe()` prints an iframe.
+- **Native dialogs**: `UIPrintInteractionController` on iOS and the Android print framework.
+- **Platforms**: iOS, Android and Web. Web uses the browser print dialog.
 
 ## Why Capacitor Printer?
 

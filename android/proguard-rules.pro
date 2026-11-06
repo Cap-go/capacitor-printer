@@ -5,14 +5,5 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# Keep all classes in the plugin package
--keep class com.capgo.printer.** { *; }
-
-# Keep Capacitor classes
--keep class com.getcapacitor.** { *; }
-
-# Keep AndroidX Print classes
--keep class androidx.print.** { *; }
-
-# Keep AndroidX DocumentFile classes
--keep class androidx.documentfile.provider.** { *; }
+# Same rules as consumer-rules.pro (shipped to apps); single source via include.
+-include consumer-rules.pro

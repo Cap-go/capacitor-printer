@@ -2,6 +2,11 @@
 # Duplicate of library proguard-rules.pro content, merged into app shrinkers via consumerProguardFiles.
 
 # Capacitor discovers @CapacitorPlugin classes and @PluginMethod handlers via reflection on the JS bridge.
+# Keep annotation metadata Capacitor reads through PluginHandle reflection.
+-keepattributes RuntimeVisibleAnnotations
+-keep @interface com.getcapacitor.annotation.** { *; }
+-keep @interface com.getcapacitor.PluginMethod { *; }
+
 -keep @com.getcapacitor.annotation.CapacitorPlugin public class com.capgo.printer.PrinterPlugin {
     @com.getcapacitor.PluginMethod public <methods>;
 }

@@ -4,6 +4,9 @@ import WebKit
 
 @objc public class Printer: NSObject {
 
+    /// The paper `choosePaper` picks for the current print, in points.
+    private var paperSize: CGSize?
+
     enum PrinterError: Error {
         case invalidBase64Data
         case fileNotFound
@@ -183,12 +186,20 @@ import WebKit
     public func printWebView(
         webView: WKWebView,
         name: String,
+        orientation: String? = nil,
+        monochrome: Bool? = nil,
+        paperSize: CGSize? = nil,
         presentingViewController: UIViewController?,
         completion: ((Bool, Error?) -> Void)? = nil
     ) throws {
         let printInfo = UIPrintInfo(dictionary: nil)
         printInfo.jobName = name
-        printInfo.outputType = .general
+        printInfo.outputType = monochrome == true ? .grayscale : .general
+        switch orientation {
+        case "landscape": printInfo.orientation = .landscape
+        case "portrait": printInfo.orientation = .portrait
+        default: break
+        }
 
         let formatter = webView.viewPrintFormatter()
 
@@ -196,6 +207,7 @@ import WebKit
             printInfo: printInfo,
             printFormatter: formatter,
             printItem: nil,
+            paperSize: paperSize,
             presentingViewController: presentingViewController,
             completion: completion
         )
@@ -207,6 +219,7 @@ import WebKit
         printInfo: UIPrintInfo,
         printFormatter: UIPrintFormatter?,
         printItem: Any?,
+        paperSize: CGSize? = nil,
         presentingViewController: UIViewController?,
         completion: ((Bool, Error?) -> Void)? = nil
     ) throws {
@@ -220,6 +233,8 @@ import WebKit
 
         let printController = UIPrintInteractionController.shared
         printController.printInfo = printInfo
+        self.paperSize = paperSize
+        printController.delegate = paperSize == nil ? nil : self
 
         if let formatter = printFormatter {
             printController.printFormatter = formatter
@@ -263,5 +278,14 @@ import WebKit
         if !presented {
             throw PrinterError.presentationFailed
         }
+    }
+}
+
+extension Printer: UIPrintInteractionControllerDelegate {
+    public func printInteractionController(
+        _ printInteractionController: UIPrintInteractionController,
+        choosePaper paperList: [UIPrintPaper]
+    ) -> UIPrintPaper {
+        UIPrintPaper.bestPaper(forPageSize: paperSize ?? .zero, withPapersFrom: paperList)
     }
 }

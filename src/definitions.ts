@@ -236,7 +236,7 @@ export interface PrinterPlugin {
    */
   printIframe(options: PrintIframeOptions): Promise<void>;
 
-  printWebView(options?: PrintOptions): Promise<void>;
+  printWebView(options?: PrintWebViewOptions): Promise<void>;
 
   /**
    * Get the native Capacitor plugin version.
@@ -541,4 +541,39 @@ export interface PrintIframeOptions extends PrintOptions {
   selector: string;
 }
 
-export type PrintWebViewOptions = PrintOptions;
+/**
+ * Options for printing the web view. Each one only sets where the print
+ * dialog starts; the user can still change it there.
+ */
+export interface PrintWebViewOptions extends PrintOptions {
+  /**
+   * Page orientation the print dialog starts with.
+   *
+   * Omitted, the printer's default applies.
+   *
+   * @since 8.2.0
+   * @example 'landscape'
+   */
+  orientation?: 'portrait' | 'landscape';
+
+  /**
+   * Start the print dialog in black and white (`true`) or colour (`false`).
+   *
+   * Omitted, the printer's default applies.
+   *
+   * @since 8.2.0
+   */
+  monochrome?: boolean;
+
+  /**
+   * Paper width and height in millimetres, given portrait; `orientation`
+   * turns it. Android starts on the printer's paper of that size (Save as
+   * PDF included), iOS on the printer's closest paper.
+   *
+   * Omitted, the printer's default paper applies.
+   *
+   * @since 8.2.0
+   * @example { width: 210, height: 297 }
+   */
+  paperSize?: { width: number; height: number };
+}

@@ -260,12 +260,12 @@ Useful when the full HTML document is too large to pass to printHtml().
 ### printWebView(...)
 
 ```typescript
-printWebView(options?: PrintOptions | undefined) => Promise<void>
+printWebView(options?: PrintWebViewOptions | undefined) => Promise<void>
 ```
 
-| Param         | Type                                                  |
-| ------------- | ----------------------------------------------------- |
-| **`options`** | <code><a href="#printoptions">PrintOptions</a></code> |
+| Param         | Type                                                                |
+| ------------- | ------------------------------------------------------------------- |
+| **`options`** | <code><a href="#printwebviewoptions">PrintWebViewOptions</a></code> |
 
 --------------------
 
@@ -339,13 +339,16 @@ Options for printing iframe content.
 | **`selector`** | <code>string</code> | CSS selector for the iframe element to print. The selector must match a single iframe in the current document. | 8.0.19 |
 
 
-#### PrintOptions
+#### PrintWebViewOptions
 
-Base options for all print operations.
+Options for printing the web view. Each one only sets where the print
+dialog starts; the user can still change it there.
 
-| Prop       | Type                | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Default                 | Since |
-| ---------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | ----- |
-| **`name`** | <code>string</code> | Name of the print job. **Usage:** - Displayed in the system print queue - Shown in print history/logs - May appear in printer status displays - Used as default filename for "Save as PDF" option **Platform Behavior:** - **iOS**: Shown in print preview header and activity view - **Android**: Displayed in print job notification and print queue - **Web**: Used as document title in print dialog **Best Practices:** - Use descriptive names (e.g., "Invoice #12345", "Q4 Report") - Keep under 50 characters for better display - Avoid special characters that may cause issues in filenames - Include relevant identifiers (order numbers, dates, etc.) **Examples:** - "Invoice #12345" - "Sales Report - 2024 Q4" - "Customer Receipt - John Doe" - "Product Photo - SKU-ABC123" | <code>'Document'</code> | 7.0.0 |
+| Prop              | Type                                            | Description                                                                                                                                                                                                                                 | Since |
+| ----------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`orientation`** | <code>'portrait' \| 'landscape'</code>          | Page orientation the print dialog starts with. Omitted, the printer's default applies.                                                                                                                                                      | 8.2.0 |
+| **`monochrome`**  | <code>boolean</code>                            | Start the print dialog in black and white (`true`) or colour (`false`). Omitted, the printer's default applies.                                                                                                                             | 8.2.0 |
+| **`paperSize`**   | <code>{ width: number; height: number; }</code> | Paper width and height in millimetres, given portrait; `orientation` turns it. Android starts on the printer's paper of that size (Save as PDF included), iOS on the printer's closest paper. Omitted, the printer's default paper applies. | 8.2.0 |
 
 </docgen-api>
 

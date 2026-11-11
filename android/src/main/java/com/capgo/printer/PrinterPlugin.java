@@ -1,5 +1,6 @@
 package com.capgo.printer;
 
+import android.print.PrintAttributes;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -118,6 +119,13 @@ public class PrinterPlugin extends Plugin {
     @PluginMethod
     public void printWebView(PluginCall call) {
         String name = call.getString("name", "Document");
+        JSObject paperSize = call.getObject("paperSize");
+        PrintAttributes attributes = Printer.webViewAttributes(
+            call.getString("orientation"),
+            call.getBoolean("monochrome", null),
+            paperSize == null ? null : paperSize.optDouble("width", Double.NaN),
+            paperSize == null ? null : paperSize.optDouble("height", Double.NaN)
+        );
 
         try {
             // Resolve once the print session ends rather than once the job is handed to the
@@ -126,6 +134,7 @@ public class PrinterPlugin extends Plugin {
             implementation.printWebView(
                 getBridge().getWebView(),
                 name,
+                attributes,
                 new Printer.OnPrintFinishCallback() {
                     @Override
                     public void onFinish() {

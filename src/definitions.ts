@@ -236,6 +236,25 @@ export interface PrinterPlugin {
    */
   printIframe(options: PrintIframeOptions): Promise<void>;
 
+  /**
+   * Presents the printing UI for the app's current web view.
+   *
+   * **Platform Behavior:**
+   * - **iOS**: Prints the web view; `orientation`, `monochrome` and `paperSize` set where the print UI starts
+   * - **Android**: Prints the web view; `orientation`, `monochrome` and `paperSize` set where the print dialog starts
+   * - **Web**: Calls `window.print()`; only `name` applies (as the document title), the page setup comes from CSS `@page`
+   *
+   * @param options - Optional print job `name` (shown in the print queue and used as the Save as PDF file name) and the dialog's starting page setup
+   * @returns Promise that resolves when the print dialog is dismissed
+   * @example
+   * ```typescript
+   * await Printer.printWebView({
+   *   name: 'Invoice #12345',
+   *   orientation: 'landscape',
+   *   paperSize: { width: 148, height: 210 },
+   * });
+   * ```
+   */
   printWebView(options?: PrintWebViewOptions): Promise<void>;
 
   /**
@@ -543,7 +562,8 @@ export interface PrintIframeOptions extends PrintOptions {
 
 /**
  * Options for printing the web view. Each one only sets where the print
- * dialog starts; the user can still change it there.
+ * dialog starts; the user can still change it there. On web they are
+ * ignored: `window.print()` takes no settings, so use CSS `@page` there.
  */
 export interface PrintWebViewOptions extends PrintOptions {
   /**
@@ -570,7 +590,9 @@ export interface PrintWebViewOptions extends PrintOptions {
    * turns it. Android starts on the printer's paper of that size (Save as
    * PDF included), iOS on the printer's closest paper.
    *
-   * Omitted, the printer's default paper applies.
+   * The size isn't guaranteed: on Android, a printer that doesn't offer it
+   * starts on its default paper, still in the given orientation. Omitted,
+   * the printer's default paper applies.
    *
    * @since 8.2.0
    * @example { width: 210, height: 297 }

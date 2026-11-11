@@ -4,7 +4,7 @@ import WebKit
 
 @objc public class Printer: NSObject {
 
-    /// The paper `choosePaper` picks for the current print, in points.
+    /// The page size requested for the current print, in points; `choosePaper` picks the closest paper for it.
     private var paperSize: CGSize?
 
     enum PrinterError: Error {

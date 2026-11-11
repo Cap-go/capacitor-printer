@@ -263,16 +263,29 @@ Useful when the full HTML document is too large to pass to printHtml().
 printWebView(options?: PrintWebViewOptions | undefined) => Promise<void>
 ```
 
-Presents the printing UI for the app's current web view.
+Presents the printing UI to print web view content.
+
+Prints the current content displayed in your app's web view.
 
 **Platform Behavior:**
-- **iOS**: Prints the web view; `orientation`, `monochrome` and `paperSize` set where the print UI starts
-- **Android**: Prints the web view; `orientation`, `monochrome` and `paperSize` set where the print dialog starts
-- **Web**: Calls `window.print()`; only `name` applies (as the document title), the page setup comes from CSS `@page`
+- **iOS**: Uses UIPrintInteractionController with WKWebView's view printable; `orientation`, `monochrome` and `paperSize` set where the print UI starts
+- **Android**: Uses WebView.createPrintDocumentAdapter() with PrintManager; `orientation`, `monochrome` and `paperSize` set where the print dialog starts
+- **Web**: Triggers window.print() for current page; only `name` applies, the page setup comes from CSS `@page`
 
-| Param         | Type                                                                | Description                                                                                                                       |
-| ------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **`options`** | <code><a href="#printwebviewoptions">PrintWebViewOptions</a></code> | - Optional print job `name` (shown in the print queue and used as the Save as PDF file name) and the dialog's starting page setup |
+**Print Styling:**
+Supports CSS print media queries for customization. The web view's current
+styles will be applied, including any @media print rules.
+
+**Use Cases:**
+- Print the current app screen/page
+- Print web-based reports or dashboards
+- Print user-generated content displayed in web view
+
+| Param         | Type                                                                | Description                                                      |
+| ------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **`options`** | <code><a href="#printwebviewoptions">PrintWebViewOptions</a></code> | - Optional print job `name` and the dialog's starting page setup |
+
+**Since:** 7.0.0
 
 --------------------
 

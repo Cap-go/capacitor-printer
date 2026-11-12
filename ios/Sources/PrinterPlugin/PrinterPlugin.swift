@@ -150,6 +150,14 @@ public class PrinterPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func printWebView(_ call: CAPPluginCall) {
         let name = call.getString("name") ?? "Document"
+        let orientation = call.getString("orientation")
+        let monochrome = call.getBool("monochrome")
+        // Millimetres to points; a missing or non-positive dimension keeps the printer's paper.
+        let paperSize = call.getObject("paperSize").flatMap { paper -> CGSize? in
+            guard let width = paper["width"] as? Double, let height = paper["height"] as? Double,
+                  width > 0, height > 0 else { return nil }
+            return CGSize(width: width / 25.4 * 72, height: height / 25.4 * 72)
+        }
 
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -165,6 +173,9 @@ public class PrinterPlugin: CAPPlugin, CAPBridgedPlugin {
                 try self.implementation.printWebView(
                     webView: webView,
                     name: name,
+                    orientation: orientation,
+                    monochrome: monochrome,
+                    paperSize: paperSize,
                     presentingViewController: self.bridge?.viewController
                 ) { _, error in
                     if let error = error {

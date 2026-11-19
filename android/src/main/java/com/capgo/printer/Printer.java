@@ -199,6 +199,46 @@ public class Printer {
      * @param callback notified once the print session ends, or null for fire-and-forget printing.
      */
     public void printWebView(WebView webView, String name, OnPrintFinishCallback callback) throws Exception {
+        printWebView(webView, name, new PrintAttributes.Builder().build(), callback);
+    }
+
+    /**
+     * The print dialog's starting attributes; null options keep the printer's defaults.
+     *
+     * @param orientation "portrait" or "landscape"
+     * @param widthMm paper width in millimetres, with heightMm
+     */
+    public static PrintAttributes webViewAttributes(String orientation, Boolean monochrome, Double widthMm, Double heightMm) {
+        PrintAttributes.Builder builder = new PrintAttributes.Builder();
+        PrintAttributes.MediaSize size = null;
+        // The dialog picks the printer's media of exactly this size in mils, and Android's
+        // standard sizes are whole tens of mils (ISO_A4 is 8270 x 11690), so round to ten.
+        int widthMils = widthMm == null ? 0 : (int) Math.round((widthMm / 25.4) * 100) * 10;
+        int heightMils = heightMm == null ? 0 : (int) Math.round((heightMm / 25.4) * 100) * 10;
+        // MediaSize throws on zero; NaN rounds to zero, and so does any size under 0.127 mm.
+        if (widthMils > 0 && heightMils > 0) {
+            size = new PrintAttributes.MediaSize(
+                "capgo_" + widthMm + "x" + heightMm,
+                widthMm + " x " + heightMm + " mm",
+                widthMils,
+                heightMils
+            );
+        }
+        if ("landscape".equals(orientation)) {
+            size = size == null ? PrintAttributes.MediaSize.UNKNOWN_LANDSCAPE : size.asLandscape();
+        } else if ("portrait".equals(orientation)) {
+            size = size == null ? PrintAttributes.MediaSize.UNKNOWN_PORTRAIT : size.asPortrait();
+        }
+        if (size != null) {
+            builder.setMediaSize(size);
+        }
+        if (monochrome != null) {
+            builder.setColorMode(monochrome ? PrintAttributes.COLOR_MODE_MONOCHROME : PrintAttributes.COLOR_MODE_COLOR);
+        }
+        return builder.build();
+    }
+
+    public void printWebView(WebView webView, String name, PrintAttributes attributes, OnPrintFinishCallback callback) throws Exception {
         if (webView == null) {
             throw new Exception("WebView not available");
         }
@@ -207,7 +247,7 @@ public class Printer {
                 @Override
                 public void run() {
                     try {
-                        createWebPrintJob(webView, name, callback);
+                        createWebPrintJob(webView, name, attributes, callback);
                     } catch (Exception e) {
                         // The job is created asynchronously on the UI thread, so failures here
                         // cannot surface through the throws clause above.
@@ -269,13 +309,14 @@ public class Printer {
 
     private void createWebPrintJob(WebView webView, String name) {
         try {
-            createWebPrintJob(webView, name, null);
+            createWebPrintJob(webView, name, new PrintAttributes.Builder().build(), null);
         } catch (Exception e) {
             // Preserves the previous silent behaviour for callers without a callback.
         }
     }
 
-    private void createWebPrintJob(WebView webView, String name, OnPrintFinishCallback callback) throws Exception {
+    private void createWebPrintJob(WebView webView, String name, PrintAttributes attributes, OnPrintFinishCallback callback)
+        throws Exception {
         PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
         if (printManager == null) {
             throw new Exception("Print service not available");
@@ -284,7 +325,7 @@ public class Printer {
         PrintDocumentAdapter printAdapter = webView.createPrintDocumentAdapter(name);
 
         if (callback == null) {
-            printManager.print(name, printAdapter, new PrintAttributes.Builder().build());
+            printManager.print(name, printAdapter, attributes);
             return;
         }
 
@@ -311,7 +352,7 @@ public class Printer {
             callback.onFinish();
         });
 
-        PrintJob job = printManager.print(name, proxy, new PrintAttributes.Builder().build());
+        PrintJob job = printManager.print(name, proxy, attributes);
 
         // print() is documented to return null on failure (despite its @NonNull annotation) and
         // does so when the print feature is missing or the print dialog cannot be started. The

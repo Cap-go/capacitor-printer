@@ -168,51 +168,6 @@ export interface PrinterPlugin {
   printPdf(options: PrintPdfOptions): Promise<void>;
 
   /**
-   * Presents the printing UI to print web view content.
-   *
-   * Prints the current content displayed in your app's web view.
-   *
-   * **Platform Behavior:**
-   * - **iOS**: Uses UIPrintInteractionController with WKWebView's view printable
-   * - **Android**: Uses WebView.createPrintDocumentAdapter() with PrintManager
-   * - **Web**: Triggers window.print() for current page
-   *
-   * **Print Styling:**
-   * Supports CSS print media queries for customization. The web view's current
-   * styles will be applied, including any @media print rules.
-   *
-   * **Use Cases:**
-   * - Print the current app screen/page
-   * - Print web-based reports or dashboards
-   * - Print user-generated content displayed in web view
-   *
-   * @param options - Optional configuration for printing (name only)
-   * @returns Promise that resolves when print dialog is dismissed
-   * @throws Error if web view is not available or printing fails
-   * @since 7.0.0
-   * @example
-   * ```typescript
-   * // Print current web view with default name
-   * await Printer.printWebView();
-   *
-   * // Print with custom job name
-   * await Printer.printWebView({
-   *   name: 'Dashboard Screenshot',
-   * });
-   *
-   * // Use with print-specific CSS in your HTML
-   * // Add this to your app's CSS:
-   * // @media print {
-   * //   .no-print { display: none; }
-   * //   body { font-size: 12pt; }
-   * // }
-   * await Printer.printWebView({
-   *   name: 'User Profile',
-   * });
-   * ```
-   */
-
-  /**
    * Presents the printing UI for content inside an iframe element.
    *
    * Useful when the full HTML document is too large to pass to printHtml().
@@ -236,7 +191,59 @@ export interface PrinterPlugin {
    */
   printIframe(options: PrintIframeOptions): Promise<void>;
 
-  printWebView(options?: PrintOptions): Promise<void>;
+  /**
+   * Presents the printing UI to print web view content.
+   *
+   * Prints the current content displayed in your app's web view.
+   *
+   * **Platform Behavior:**
+   * - **iOS**: Uses UIPrintInteractionController with WKWebView's view printable; `orientation`, `monochrome` and `paperSize` set where the print UI starts
+   * - **Android**: Uses WebView.createPrintDocumentAdapter() with PrintManager; `orientation`, `monochrome` and `paperSize` set where the print dialog starts
+   * - **Web**: Triggers window.print() for current page; only `name` applies, the page setup comes from CSS `@page`
+   *
+   * **Print Styling:**
+   * Supports CSS print media queries for customization. The web view's current
+   * styles will be applied, including any @media print rules.
+   *
+   * **Use Cases:**
+   * - Print the current app screen/page
+   * - Print web-based reports or dashboards
+   * - Print user-generated content displayed in web view
+   *
+   * @param options - Optional print job `name` and the dialog's starting page setup
+   * @returns Promise that resolves when print dialog is dismissed
+   * @throws Error if web view is not available or printing fails
+   * @since 7.0.0
+   * @example
+   * ```typescript
+   * // Print current web view with default name
+   * await Printer.printWebView();
+   *
+   * // Print with custom job name
+   * await Printer.printWebView({
+   *   name: 'Dashboard Screenshot',
+   * });
+   *
+   * // Use with print-specific CSS in your HTML
+   * // Add this to your app's CSS:
+   * // @media print {
+   * //   .no-print { display: none; }
+   * //   body { font-size: 12pt; }
+   * // }
+   * await Printer.printWebView({
+   *   name: 'User Profile',
+   * });
+   *
+   * // Start the dialog on A5 landscape, in black and white
+   * await Printer.printWebView({
+   *   name: 'Invoice #12345',
+   *   orientation: 'landscape',
+   *   monochrome: true,
+   *   paperSize: { width: 148, height: 210 },
+   * });
+   * ```
+   */
+  printWebView(options?: PrintWebViewOptions): Promise<void>;
 
   /**
    * Get the native Capacitor plugin version.
@@ -541,4 +548,42 @@ export interface PrintIframeOptions extends PrintOptions {
   selector: string;
 }
 
-export type PrintWebViewOptions = PrintOptions;
+/**
+ * Options for printing the web view. Each one only sets where the print
+ * dialog starts; the user can still change it there. On web they are
+ * ignored: `window.print()` takes no settings, so use CSS `@page` there.
+ */
+export interface PrintWebViewOptions extends PrintOptions {
+  /**
+   * Page orientation the print dialog starts with.
+   *
+   * Omitted, the printer's default applies.
+   *
+   * @since 8.2.0
+   * @example 'landscape'
+   */
+  orientation?: 'portrait' | 'landscape';
+
+  /**
+   * Start the print dialog in black and white (`true`) or colour (`false`).
+   *
+   * Omitted, the printer's default applies.
+   *
+   * @since 8.2.0
+   */
+  monochrome?: boolean;
+
+  /**
+   * Paper width and height in millimetres, given portrait; `orientation`
+   * turns it. Android starts on the printer's paper of that size (Save as
+   * PDF included), iOS on the printer's closest paper.
+   *
+   * The size isn't guaranteed: on Android, a printer that doesn't offer it
+   * starts on its default paper, still in the given orientation. Omitted,
+   * the printer's default paper applies.
+   *
+   * @since 8.2.0
+   * @example { width: 210, height: 297 }
+   */
+  paperSize?: { width: number; height: number };
+}
